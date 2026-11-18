@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="referrer" content="no-referrer" />
+  <meta name="theme-color" content="#1E1F23" />
+  <title>Mentra Studio V2 — Cổng Kết Nối Trực Tuyến</title>
+  <style>
+    :root {
+      --bg-canvas: #131417;
+      --bg-card: #1E1F23;
+      --bg-elevated: #26282E;
+      --border-subtle: #31343D;
+      --accent-cyan: #00D4C8;
+      --accent-cyan-hover: #1AE2D6;
+      --text-primary: #F5F7FA;
+      --text-secondary: #C0C6D0;
+      --text-muted: #9BA3B0;
+      --status-online: #10B981;
+      --status-standby: #F59E0B;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      width: 100%;
+      min-height: 100vh;
+      background-color: var(--bg-canvas);
+      background-image: radial-gradient(circle at 50% 0%, rgba(0, 212, 200, 0.09) 0%, transparent 58%);
+      color: var(--text-primary);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    main.portal-shell {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 16px;
+    }
+
+    section.studio-card {
+      width: 100%;
+      max-width: 480px;
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 18px;
+      padding: 32px 28px;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.52);
+    }
+
+    .brand-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 22px;
+    }
+
+    .brand-badge {
+      width: 46px;
+      height: 46px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #00D4C8 0%, #0099B8 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      box-shadow: 0 6px 18px rgba(0, 212, 200, 0.25);
+    }
+
+    .brand-badge svg {
+      width: 24px;
+      height: 24px;
+      fill: #0D1114;
+    }
+
+    .brand-titles h1 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      color: var(--text-primary);
+      line-height: 1.3;
+    }
+
+    .brand-titles p {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .status-panel {
+      background-color: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 18px 16px;
+      margin-bottom: 20px;
+    }
+
+    .status-indicator-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .pulse-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background-color: var(--accent-cyan);
+      box-shadow: 0 0 0 4px rgba(0, 212, 200, 0.18);
+      flex-shrink: 0;
+      animation: pulseGlow 1.8s infinite ease-in-out;
+    }
+
+    .pulse-dot.standby {
+      background-color: var(--status-standby);
+      box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.18);
+    }
+
+    .pulse-dot.online {
+      background-color: var(--status-online);
+      box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.2);
+    }
+
+    @keyframes pulseGlow {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.18); opacity: 0.72; }
+    }
+
+    .status-label {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--accent-cyan);
+    }
+
+    .status-label.standby {
+      color: #FBBF24;
+    }
+
+    .status-message {
+      font-size: 0.95rem;
+      line-height: 1.55;
+      color: var(--text-secondary);
+    }
+
+    .retry-meta {
+      margin-top: 10px;
+      font-size: 0.825rem;
+      color: var(--text-muted);
+    }
+
+    .key-form {
+      display: none;
+      margin-bottom: 18px;
+    }
+
+    .key-form.visible {
+      display: block;
+    }
+
+    .key-form label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+
+    .key-input {
+      width: 100%;
+      min-height: 44px;
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 1px solid var(--border-subtle);
+      background-color: #15161A;
+      color: var(--text-primary);
+      font-size: 0.9375rem;
+      outline: none;
+      transition: border-color 0.15s ease;
+    }
+
+    .key-input:focus {
+      border-color: var(--accent-cyan);
+    }
+
+    .actions-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn-primary {
+      flex: 1 1 auto;
+      min-height: 44px;
+      min-width: 140px;
+      padding: 10px 18px;
+      border: none;
+      border-radius: 10px;
+      background-color: var(--accent-cyan);
+      color: #0D1114;
+      font-size: 0.9375rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background-color 0.15s ease, transform 0.1s ease;
+    }
+
+    .btn-primary:hover {
+      background-color: var(--accent-cyan-hover);
+    }
+
+    .btn-primary:active {
+      transform: translateY(1px);
+    }
+
+    .footer-note {
+      margin-top: 18px;
+      font-size: 0.8125rem;
+      line-height: 1.5;
+      color: var(--text-muted);
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <main class="portal-shell">
+    <section class="studio-card" aria-labelledby="studio-heading">
+      <div class="brand-row">
+        <div class="brand-badge" aria-hidden="true">
+          <svg viewBox="0 0 24 24" focusable="false">
+            <path d="M4 5.5A1.5 1.5 0 0 1 5.5 4h13A1.5 1.5 0 0 1 20 5.5v13a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 18.5v-13zm6.2 3.3v6.4L15.8 12l-5.6-3.2z"/>
+          </svg>
+        </div>
+        <div class="brand-titles">
+          <h1 id="studio-heading">Mentra Studio V2</h1>
+          <p>Trình dựng phim chuyên nghiệp — Cổng kết nối cố định</p>
+        </div>
+      </div>
+
+      <div class="status-panel" role="status" aria-live="polite">
+        <div class="status-indicator-row">
+          <span id="status-dot" class="pulse-dot"></span>
+          <span id="status-badge-text" class="status-label">Đang kết nối máy trạm...</span>
+        </div>
+        <p id="status-message" class="status-message">
+          Đang kiểm tra tín hiệu trực tuyến và chuyển hướng tự động vào phiên dựng phim của bạn...
+        </p>
+        <p id="retry-meta" class="retry-meta"></p>
+      </div>
+
+      <form id="key-form" class="key-form" autocomplete="off">
+        <label for="access-key-input">Mã khóa truy cập (chỉ cần nhập 1 lần trên thiết bị này)</label>
+        <input
+          id="access-key-input"
+          class="key-input"
+          type="password"
+          placeholder="Dán mã khóa hoặc đường link được chia sẻ..."
+          aria-label="Mã khóa truy cập Mentra Studio V2"
+        />
+      </form>
+
+      <div class="actions-row">
+        <button id="connect-btn" type="button" class="btn-primary" aria-label="Kết nối ngay tới Mentra Studio V2">
+          Kết nối ngay
+        </button>
+      </div>
+
+      <p class="footer-note">
+        Đường link này là cố định vĩnh viễn. Thiết bị của bạn tự động ghi nhớ khóa bảo mật để mở nhanh ở những lần tiếp theo.
+      </p>
+    </section>
+  </main>
+
+  <script>
+    (function () {
+      "use strict";
+
+      var GIST_ID = "8c0890b418f26b852bac13299e92dde9";
+      var POINTER_FILE = "mentra_studio_tunnel_pointer.json";
+      var GIST_API_URL = "https://api.github.com/gists/" + GIST_ID;
+      var GIST_RAW_URL = "https://raw.githubusercontent.com/gist/ngantron15-sudo/" + GIST_ID + "/raw/" + POINTER_FILE;
+      var STORAGE_KEY = "mentra_studio_magic_k";
+      var RETRY_SECONDS = 5;
+      var TUNNEL_RE = /^https:\/\/[a-zA-Z0-9-]+\.trycloudflare\.com$/;
+
+      var dotEl = document.getElementById("status-dot");
+      var badgeEl = document.getElementById("status-badge-text");
+      var msgEl = document.getElementById("status-message");
+      var retryEl = document.getElementById("retry-meta");
+      var keyFormEl = document.getElementById("key-form");
+      var keyInputEl = document.getElementById("access-key-input");
+      var connectBtn = document.getElementById("connect-btn");
+
+      var activeTimer = null;
+      var countdownTimer = null;
+      var secondsLeft = RETRY_SECONDS;
+      var isChecking = false;
+      var latestLiveTunnel = "";
+
+      function extractKeyFromRawString(raw) {
+        if (!raw) return "";
+        var trimmed = String(raw).trim();
+        try {
+          var kMatch = trimmed.match(/[?#&]k=([a-zA-Z0-9_-]{8,128})/);
+          if (kMatch && kMatch[1]) return kMatch[1];
+        } catch (_) {}
+        if (/^k=([a-zA-Z0-9_-]{8,128})$/.test(trimmed)) {
+          return trimmed.slice(2);
+        }
+        if (/^[a-zA-Z0-9_-]{16,128}$/.test(trimmed)) {
+          return trimmed;
+        }
+        return "";
+      }
+
+      function readStoredKey() {
+        try {
+          return localStorage.getItem(STORAGE_KEY) || "";
+        } catch (_) {
+          return "";
+        }
+      }
+
+      function writeStoredKey(val) {
+        if (!val) return;
+        try {
+          localStorage.setItem(STORAGE_KEY, val);
+        } catch (_) {}
+      }
+
+      function resolveMagicKey() {
+        var fromUrl = "";
+        if (window.location.hash && window.location.hash.length > 1) {
+          var hashBody = window.location.hash.slice(1);
+          var hashParams = new URLSearchParams(hashBody.replace(/^\?/, ""));
+          fromUrl = hashParams.get("k") || extractKeyFromRawString(hashBody);
+        }
+        if (!fromUrl && window.location.search) {
+          var searchParams = new URLSearchParams(window.location.search);
+          fromUrl = searchParams.get("k") || "";
+        }
+        if (fromUrl) {
+          fromUrl = fromUrl.trim();
+          writeStoredKey(fromUrl);
+          try {
+            window.history.replaceState(null, document.title, window.location.pathname);
+          } catch (_) {}
+          return fromUrl;
+        }
+        return readStoredKey().trim();
+      }
+
+      var currentKey = resolveMagicKey();
+
+      function setStandbyState() {
+        dotEl.className = "pulse-dot standby";
+        badgeEl.className = "status-label standby";
+        badgeEl.textContent = "Đang chờ máy trạm sẵn sàng";
+        msgEl.textContent = "Mentra Studio V2 — Máy trạm GPU đang tắt nghỉ hoặc đang khởi động lại (Tự động kết nối ngay khi máy bật...)";
+      }
+
+      function setConnectingState() {
+        dotEl.className = "pulse-dot";
+        badgeEl.className = "status-label";
+        badgeEl.textContent = "Đang kết nối máy trạm...";
+        msgEl.textContent = "Đang kiểm tra tín hiệu trực tuyến và chuyển hướng tự động vào phiên dựng phim của bạn...";
+      }
+
+      function setOnlineNeedKeyState() {
+        dotEl.className = "pulse-dot online";
+        badgeEl.className = "status-label";
+        badgeEl.textContent = "Máy trạm đang hoạt động trực tuyến";
+        msgEl.textContent = "Vui lòng dán mã khóa hoặc đường link chia sẻ một lần để mở Mentra Studio V2 trên thiết bị này.";
+        retryEl.textContent = "";
+        keyFormEl.className = "key-form visible";
+        keyInputEl.focus();
+      }
+
+      function fetchWithTimeout(url, timeoutMs, extraOpts) {
+        var controller = typeof AbortController !== "undefined" ? new AbortController() : null;
+        var tid = controller ? setTimeout(function () { controller.abort(); }, timeoutMs) : null;
+        var opts = Object.assign({ cache: "no-store" }, extraOpts || {});
+        if (controller) opts.signal = controller.signal;
+        return fetch(url, opts).finally(function () {
+          if (tid) clearTimeout(tid);
+        });
+      }
+
+      function parsePointerJson(rawText) {
+        if (!rawText) return "";
+        try {
+          var parsed = JSON.parse(rawText);
+          var url = String((parsed && parsed.public_tunnel_url) || "").trim().replace(/\/+$/, "");
+          if (TUNNEL_RE.test(url)) return url;
+        } catch (_) {}
+        return "";
+      }
+
+      function resolveTunnelPointer() {
+        return fetchWithTimeout(GIST_API_URL + "?t=" + Date.now(), 3500, {
+          headers: { "Accept": "application/vnd.github+json" }
+        })
+          .then(function (resp) {
+            if (!resp.ok) throw new Error("gist_api_" + resp.status);
+            return resp.json();
+          })
+          .then(function (data) {
+            var files = (data && data.files) || {};
+            var entry = files[POINTER_FILE];
+            if (entry && entry.content) {
+              return parsePointerJson(entry.content);
+            }
+            throw new Error("missing_pointer_entry");
+          })
+          .catch(function () {
+            return fetchWithTimeout(GIST_RAW_URL + "?t=" + Date.now(), 3500)
+              .then(function (resp) {
+                if (!resp.ok) return "";
+                return resp.text();
+              })
+              .then(parsePointerJson)
+              .catch(function () { return ""; });
+          });
+      }
+
+      function pingTunnelEndpoint(tunnelUrl) {
+        if (!tunnelUrl) return Promise.resolve(false);
+        return fetchWithTimeout(tunnelUrl + "/api/tunnel/ping", 3800, {
+          mode: "cors",
+          credentials: "omit"
+        })
+          .then(function (resp) { return Boolean(resp && resp.status === 200); })
+          .catch(function () { return false; });
+      }
+
+      function redirectIntoStudio(tunnelUrl, key) {
+        dotEl.className = "pulse-dot online";
+        badgeEl.className = "status-label";
+        badgeEl.textContent = "Đã kết nối — Đang mở Studio...";
+        retryEl.textContent = "";
+        var target = tunnelUrl.replace(/\/+$/, "") + "/?k=" + encodeURIComponent(key);
+        window.location.replace(target);
+      }
+
+      function scheduleNextAttempt() {
+        if (activeTimer) clearTimeout(activeTimer);
+        if (countdownTimer) clearInterval(countdownTimer);
+        secondsLeft = RETRY_SECONDS;
+        retryEl.textContent = "Tự động kiểm tra lại sau " + secondsLeft + " giây...";
+        countdownTimer = setInterval(function () {
+          secondsLeft = Math.max(0, secondsLeft - 1);
+          if (secondsLeft > 0) {
+            retryEl.textContent = "Tự động kiểm tra lại sau " + secondsLeft + " giây...";
+          } else {
+            retryEl.textContent = "Đang kiểm tra lại kết nối...";
+          }
+        }, 1000);
+        activeTimer = setTimeout(function () {
+          attemptConnection(false);
+        }, RETRY_SECONDS * 1000);
+      }
+
+      function attemptConnection(manualTrigger) {
+        if (isChecking) return;
+        isChecking = true;
+        if (manualTrigger) {
+          setConnectingState();
+          retryEl.textContent = "";
+        }
+
+        var typedVal = keyInputEl ? extractKeyFromRawString(keyInputEl.value) : "";
+        if (typedVal) {
+          currentKey = typedVal;
+          writeStoredKey(currentKey);
+          keyFormEl.className = "key-form";
+        }
+
+        resolveTunnelPointer()
+          .then(function (tunnelUrl) {
+            if (!tunnelUrl) {
+              return { online: false, tunnelUrl: "" };
+            }
+            return pingTunnelEndpoint(tunnelUrl).then(function (ok) {
+              return { online: ok, tunnelUrl: tunnelUrl };
+            });
+          })
+          .then(function (res) {
+            isChecking = false;
+            if (res.online && res.tunnelUrl) {
+              latestLiveTunnel = res.tunnelUrl;
+              if (currentKey) {
+                redirectIntoStudio(res.tunnelUrl, currentKey);
+                return;
+              }
+              setOnlineNeedKeyState();
+              return;
+            }
+            setStandbyState();
+            scheduleNextAttempt();
+          })
+          .catch(function () {
+            isChecking = false;
+            setStandbyState();
+            scheduleNextAttempt();
+          });
+      }
+
+      if (keyFormEl) {
+        keyFormEl.addEventListener("submit", function (ev) {
+          ev.preventDefault();
+          var entered = extractKeyFromRawString(keyInputEl.value);
+          if (entered) {
+            currentKey = entered;
+            writeStoredKey(currentKey);
+            if (latestLiveTunnel) {
+              redirectIntoStudio(latestLiveTunnel, currentKey);
+              return;
+            }
+          }
+          attemptConnection(true);
+        });
+      }
+
+      if (connectBtn) {
+        connectBtn.addEventListener("click", function () {
+          var entered = keyInputEl ? extractKeyFromRawString(keyInputEl.value) : "";
+          if (entered) {
+            currentKey = entered;
+            writeStoredKey(currentKey);
+            if (latestLiveTunnel) {
+              redirectIntoStudio(latestLiveTunnel, currentKey);
+              return;
+            }
+          }
+          attemptConnection(true);
+        });
+      }
+
+      attemptConnection(false);
+    })();
+  </script>
+</body>
+</html>
